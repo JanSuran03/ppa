@@ -1,0 +1,5 @@
+(λ t f a e n . (a (e (n t t) f) (a (e (n t f) f) (a (e (n f t) f) (e (n f f) t)))))
+(λ t f . t)
+(λ t f . f)
+(λ x y . x y (λ t f . f))
+(λ x y . x y (y (λ t f . f) (λ t f . t)))
