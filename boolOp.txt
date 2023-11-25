@@ -1,0 +1,1 @@
+(\ x y . ((x (\ t f . f) (\ t f . t)) (\ t f . t) ((y (\ t f . f) (\ t f . t)) (\ t f . t) ((x y (\ t f . f)) (\ t f . f) (\ t f . t)))))
