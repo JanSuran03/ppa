@@ -1,0 +1,5 @@
+(\ p . p p p) ((\ a . c a l) ((\ k . k k) ((\ i . i) o)))
+(\ p . p p p) ((\ a . c a l) ((\ k . k k) o))
+(\ p . p p p) ((\ a . c a l) (o o))
+(\ p . p p p) (c (o o) l)
+(c (o o) l) (c (o o) l) (c (o o) l)
