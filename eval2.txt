@@ -1,0 +1,7 @@
+(\ y x s z . x s (y s z)) (\ s z . s z) (\ s z . s (s z))
+(\ x s z . x s ((\ s z . s z) s z)) (\ s z . s (s z))
+(\ s z . (\ s z . s (s z)) s ((\ s z . s z) s z))
+(\ s z . (\ z . s (s z)) ((\ s z . s z) s z))
+(\ s z . s (s ((\ s z . s z) s z)))
+(\ s z . s (s ((\ z . s z) z)))
+(\ s z . s (s (s z))
