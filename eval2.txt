@@ -4,4 +4,4 @@
 (\ s z . (\ z . s (s z)) ((\ s z . s z) s z))
 (\ s z . s (s ((\ s z . s z) s z)))
 (\ s z . s (s ((\ z . s z) z)))
-(\ s z . s (s (s z))
+(\ s z . s (s (s z)))
