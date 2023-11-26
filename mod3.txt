@@ -1,0 +1,7 @@
+(λ e n .
+    n   (λ x .
+        e x (λ s z . z)
+            (λ s z . x s (s z)))
+        (λ s z . z))        
+(λ x . x (λ f g . g ( f (λ f g . g ( f (λ x t f . f) )) )) (λ g g . x (λ x s z . x (λ f g . g ( f s )) (λ g . z) (λ u . u)) (λ s z . s ( s z )) (λ x t f . f) (λ t f . t)) (λ u . u) (λ u . u))
+
