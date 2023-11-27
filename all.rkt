@@ -16,3 +16,24 @@
 [define [decorate f g]
   [lambda [x] [g [f x]]]]
 
+[define [some f lst]
+  [if [empty? lst]
+    #F
+    [let [[res [f [car lst]]]]
+      [if res res [some f [cdr lst]]]]]]
+
+[define [every? f lst]
+  [if [empty? lst]
+    #T
+    [if [f [car lst]] [every? f [cdr lst]] #F]]]
+
+[define [cnf-value form values]
+  [every? [lambda [disj]
+            [some [lambda [lit]
+                    [some [lambda [pair]
+                            [if [= [car pair] lit]
+                              [cadr pair]
+                              #F]]
+                          values]]
+                  disj]]
+          form]]
