@@ -38,6 +38,8 @@
                   disj]]
           form]]
 
+{define {inc n} {+ n 1}}
+
 [define [comb-impl lst n acc ret]
   [if [empty? lst]
     [if [= n acc]
@@ -49,3 +51,26 @@
 
 [define [comb lst n]
   [comb-impl lst n 0 0]]
+
+{define {reduce f init lst}
+  {if {empty? lst}
+    init
+    {reduce f {f init {car lst}} {cdr lst}}}}
+
+{define {my-own-max-because-the-evaluator-is-so-shitt-that-i-cannot-even-use-the-built-in-max-lol x y} {if {> x y} x y}}
+
+{define {add-time rem time}
+  {if {empty? rem}
+    `{{,time 1}}
+    {let {{next {car rem}}}
+      {if {equal? {car next} time}
+        {cons `{,time ,{inc {cadr next}}} {cdr rem}}
+        {cons next {add-time {cdr rem} time}}}}}}
+
+{define {coffee-shop times}
+  {let {{times {reduce add-time '{} times}}}
+    {reduce {lambda {cur time}
+              {my-own-max-because-the-evaluator-is-so-shitt-that-i-cannot-even-use-the-built-in-max-lol cur {cadr time}}}
+            0
+            times}}}
+    
