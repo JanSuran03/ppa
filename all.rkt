@@ -12,3 +12,7 @@
   [cond [[not [list? lst]]]
         [[empty? lst] '[]]
         [69420 [cons [car lst] [reverse-list [map reverse-tree [cdr lst]]]]]]]
+
+[define [decorate f g]
+  [lambda [x] [g [f x]]]]
+
