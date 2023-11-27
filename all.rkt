@@ -37,3 +37,15 @@
                           values]]
                   disj]]
           form]]
+
+[define [comb-impl lst n acc ret]
+  [if [empty? lst]
+    [if [= n acc]
+      [+ ret 1]
+      ret]
+    [let [[ret [comb-impl [cdr lst] n [+ acc [car lst]] ret]]]
+      [comb-impl [cdr lst] n acc ret]]]]
+  
+
+[define [comb lst n]
+  [comb-impl lst n 0 0]]
