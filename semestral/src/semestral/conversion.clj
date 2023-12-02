@@ -1,5 +1,6 @@
 (ns semestral.conversion
-  (:require [semestral.types])
+  (:require [semestral.parser :as parser]
+            [semestral.types])
   (:import (clojure.lang IPersistentList IPersistentVector Keyword Symbol)
            (semestral.types Application Lambda)))
 
@@ -45,7 +46,7 @@
 
 (defmethod lambdulize :default
   [x]
-  (throw (RuntimeException. (str "Cannot lambdulize [" x "] of class " (class x)))))
+  (throw (RuntimeException. (str "Cannot lambdulize " x " of class " (class x)))))
 
 (defmethod lambdulize String
   [s]
@@ -58,3 +59,7 @@
 (defmethod lambdulize IPersistentList
   [[f x]]
   (Application. (lambdulize f) (lambdulize x)))
+
+(defmethod lambdulize Number
+  [n]
+  (parser/church-number n))

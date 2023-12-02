@@ -6,8 +6,11 @@
 (defn- parse-symbols [s]
   (str/split s #" "))
 
+(declare church-number)
+
 (defn- parse-1 [x]
   (cond (nil? x) nil
+        (number? x) [(church-number x)]
         (string? x) (parse-symbols x)
         :else [x]))
 
@@ -30,3 +33,12 @@
    args))
 
 (def call application)
+
+(defn church-number [n]
+  (if (and (int? n) (>= n 0))
+    (->> (reduce (fn [sz _]
+                   (call "s" sz))
+                 "z"
+                 (range n))
+         (lambda "s z"))
+    (throw (RuntimeException. (str "Can only lambdulize non-negative integer: " n)))))

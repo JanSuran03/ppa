@@ -6,3 +6,5 @@
             [semestral.types]))
 
 (def expr-two (p/call INC INC ZERO))
+(def expr-two-plus-five (p/call ADD 2 5))
+(def expr-three-times-four (p/call MUL 3 4))
