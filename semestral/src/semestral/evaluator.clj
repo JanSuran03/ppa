@@ -1,5 +1,5 @@
 (ns semestral.evaluator
-  (:refer-clojure :exclude [replace]))
+  (:require [semestral.conversion :as conv]))
 
 (defn beta-reduction [[x y :as form]]
   (cond (string? form) form                                 ; symbol - do nothing
@@ -17,15 +17,21 @@
                                           body)))))
 
 ; TODO: alpha conversion
+; (λ t f . a) (λ a . a) <-
+; (λ a . a) (λ t f . a) ->
 
 (defn run-the-turing-fkin-machine [form]
-  (println form)
-  (loop [form form
-         i 1]
-    (println (str "#" i))
-    (let [new-form (beta-reduction form)]
-      (if (= form new-form)
-        form
-        (do                                                 ; (println new-form)
-          (Thread/sleep 100)                                ; debug - prevent infinite loop
-          (recur new-form (inc i)))))))
+  (let [form (conv/clojurize form)]
+    ; (println form)
+    (loop [form form
+           i 1]
+      ; (println (str "#" i))
+      (let [new-form (beta-reduction form)]
+        (if (= form new-form)
+          form
+          (do                                               ; (println new-form)
+            ; (Thread/sleep 100)                              ; debug - prevent infinite loop
+            (recur new-form (inc i))))))))
+
+(defn run [form]
+  (run-the-turing-fkin-machine form))
