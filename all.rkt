@@ -22,6 +22,9 @@
     [let [[res [f [car lst]]]]
       [if res res [some f [cdr lst]]]]]]
 
+[define [not-any? f lst]
+  [not [some f lst]]]
+
 [define [every? f lst]
   [if [empty? lst]
     #T
@@ -37,8 +40,6 @@
                           values]]
                   disj]]
           form]]
-
-{define {inc n} {+ n 1}}
 
 [define [comb-impl lst n acc ret]
   [if [empty? lst]
@@ -57,20 +58,37 @@
     init
     {reduce f {f init {car lst}} {cdr lst}}}}
 
-{define {my-own-max-because-the-evaluator-is-so-shitt-that-i-cannot-even-use-the-built-in-max-lol x y} {if {> x y} x y}}
+{define {my-max x y} {if {> x y} x y}}
 
 {define {add-time rem time}
   {if {empty? rem}
     `{{,time 1}}
     {let {{next {car rem}}}
       {if {equal? {car next} time}
-        {cons `{,time ,{inc {cadr next}}} {cdr rem}}
+        {cons `{,time ,{+ {cadr next} 1}} {cdr rem}}
         {cons next {add-time {cdr rem} time}}}}}}
 
 {define {coffee-shop times}
   {let {{times {reduce add-time '{} times}}}
     {reduce {lambda {cur time}
-              {my-own-max-because-the-evaluator-is-so-shitt-that-i-cannot-even-use-the-built-in-max-lol cur {cadr time}}}
+              {my-max cur {cadr time}}}
             0
             times}}}
-    
+
+{define {dfs visited paths target}
+  {let {{top {car visited}}}
+    {or {some {lambda {edge}
+                {and {= {car edge} top}
+                     {= {cadr edge} target}}}
+              paths}
+        {some {lambda {edge}
+                {and {= {car edge} top}
+                     {not-any? {lambda {vis-vert}
+                                 {= {cadr edge} vis-vert}}
+                               visited}
+                     {dfs {cons {cadr edge} visited} paths target}}}
+              paths}}}}
+
+{define {cities-path? paths from to}
+  {or {= from to}
+      {dfs {cons from null} paths to}}}
