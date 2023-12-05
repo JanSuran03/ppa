@@ -92,3 +92,57 @@
 {define {cities-path? paths from to}
   {or {= from to}
       {dfs {cons from null} paths to}}}
+
+{define {nth lst index}
+  {if {= index 0}
+    {car lst}
+    {nth {cdr lst} {- index 1}}}}
+
+{define {take2 n lst}
+  {if {= n 0}
+    '{}
+    {cons {car lst} {take2 {- n 1} {cdr lst}}}}}
+
+{define {drop2 n lst}
+  {if {= n 0}
+    lst
+    {drop2 {- n 1} {cdr lst}}}}
+
+{define {concat lst1 lst2}
+  {if {empty? lst1}
+    lst2
+    {cons {car lst1} {concat {cdr lst1} lst2}}}}
+
+{define {swap-n n lst}
+  {concat {drop2 n lst} {take2 n lst}}}
+
+{define {lstlen lst}
+  {if {empty? lst}
+    0
+    {+ 1 {lstlen {cdr lst}}}}}
+
+{define {shift-row matrix n by}
+  {let {{len {lstlen {nth matrix n}}}}
+    {concat {concat {take2 n matrix}
+                    `{,{swap-n {modulo {- len by} len} {nth matrix n}}}}
+            {drop2 {+ n 1} matrix}}}}
+
+{define {shift-col-impl matrest by n nths len}
+  {if {empty? matrest}
+      '{}
+      {cons {concat {concat {take2 n {car matrest}} `{,{nth nths {modulo by len}}}}
+                    {drop2 {+ n 1} {car matrest}}}
+            {shift-col-impl {cdr matrest} {+ by 1} n nths len}}}}
+
+{define {shift-col matrix n by}
+  {let {{nths {map {lambda {row} {nth row n}} matrix}}
+        {len {lstlen matrix}}}
+    {shift-col-impl matrix {- len by} n nths len}}}
+
+{define {rotate-mat matrix commands}
+  {reduce {lambda {matrix command}
+            {if {= {car command} 0}
+              {shift-row matrix {cadr command} {caddr command}}
+              {shift-col matrix {cadr command} {caddr command}}}}
+          matrix
+          commands}}
