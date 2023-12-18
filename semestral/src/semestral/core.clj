@@ -1,7 +1,6 @@
 (ns semestral.core
   (:require [semestral.conversion :as conv]
             [semestral.evaluator :as eval]
-            [semestral.string-conversion :as to-str]
             [semestral.parser :as p]
             [semestral.predefs :refer :all :as predefs]
             [semestral.types]))
