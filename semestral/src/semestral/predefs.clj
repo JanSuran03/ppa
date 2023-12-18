@@ -54,6 +54,11 @@
                   (into {})))
 
 ; ---------------------- TESTS ----------------------
+(defmacro testing [& body]
+  `(binding [eval/*step-by-step-eval* false
+             eval/*interval* 0]
+     ~@body))
+
 (defmacro expect-assertion-error [form]
   `(try ~form
         (throw (Throwable. ~(str "Expected throw for form: " form)))
@@ -85,37 +90,75 @@
         (assert (= t ret) "Expected true, got false")
         (assert (= f ret) "Expected false, got true")))))
 
+(let [arg? (fn [x] (and (string? x) (= (count x) 1)))
+      gensym? (fn [x] (and (symbol? x) (> (count (name x)) 1)))]
+  (defn check-expr [form template context]
+    (cond (string? form) (or (and (arg? template) (= form template))
+                             (and (gensym? template) (= (context template) form)))
+          (list? form) (and (list? template)
+                            (= (count form) (count template) 2)
+                            (every? identity (map #(check-expr %1 %2 context) form template)))
+          (vector? form) (and (vector? template)
+                              (= (count form) (count template) 2)
+                              (let [[x1 body1] form
+                                    [x2 body2] template]
+                                (when-let [new-context (cond (and (arg? x2) (= x1 x2)) context
+                                                             (gensym? x2) (if-let [in-context (context x2)]
+                                                                            (and (= in-context x1) context) ; in context - must match
+                                                                            (assoc context x2 x1)))]
+                                  (check-expr body1 body2 new-context)))))))
+
+(defmacro check-expression [form template]
+  `(assert (check-expr ~form (quote ~template) {})))
+
 (defn run-tests []
-  (test-church-number (church-number 3) 3)
-  (expect-assertion-error (test-church-number (church-number 3) 4))
-  (test-church-number (eval/run (-> Y-COMB FACT 4)) 24)
-  (test-church-number (eval/run (-> ADD 3 5)) 8)
-  ; Xor
-  (test-boolean (eval/run (-> XOR FALSE FALSE)) false)
-  (test-boolean (eval/run (-> XOR TRUE FALSE)) true)
-  (test-boolean (eval/run (-> XOR FALSE TRUE)) true)
-  (test-boolean (eval/run (-> XOR TRUE TRUE)) false)
-  (expect-assertion-error (test-boolean (eval/run (-> XOR TRUE TRUE)) true))
-  ; Nand
-  (test-boolean (eval/run (-> NAND FALSE FALSE)) true)
-  (test-boolean (eval/run (-> NAND TRUE FALSE)) true)
-  (test-boolean (eval/run (-> NAND FALSE TRUE)) true)
-  (test-boolean (eval/run (-> NAND TRUE TRUE)) false)
-  ; Mod2
-  (test-church-number (eval/run (-> MOD2 42)) 0)
-  (test-church-number (eval/run (-> MOD2 69)) 1)
-  ; Recursion
-  (test-church-number (eval/run (-> Y-COMB RECURSION 0 0)) 1)
-  (test-church-number (eval/run (-> Y-COMB RECURSION 0 1)) 2)
-  (test-church-number (eval/run (-> Y-COMB RECURSION 0 2)) 4)
-  (test-church-number (eval/run (-> Y-COMB RECURSION 1 0)) 2)
-  (test-church-number (eval/run (-> Y-COMB RECURSION 1 1)) 4)
-  (test-church-number (eval/run (-> Y-COMB RECURSION 1 2)) 8)
-  (test-church-number (eval/run (-> Y-COMB RECURSION 2 0)) 4)
-  (test-church-number (eval/run (-> Y-COMB RECURSION 2 1)) 8)
-  (test-church-number (eval/run (-> Y-COMB RECURSION 2 2)) 16)
-  ; Math
-  (test-church-number (eval/run (-> MATH 0 0)) 0)
-  (test-church-number (eval/run (-> MATH 0 1)) 2)
-  (test-church-number (eval/run (-> MATH 2 5)) 30)
-  (test-church-number (eval/run (-> MATH 3 2)) 16))
+  (testing
+    (test-church-number (church-number 3) 3)
+    (expect-assertion-error (test-church-number (church-number 3) 4))
+    (test-church-number (eval/run (-> Y-COMB FACT 4)) 24)
+    (test-church-number (eval/run (-> ADD 3 5)) 8)
+    ; Xor
+    (test-boolean (eval/run (-> XOR FALSE FALSE)) false)
+    (test-boolean (eval/run (-> XOR TRUE FALSE)) true)
+    (test-boolean (eval/run (-> XOR FALSE TRUE)) true)
+    (test-boolean (eval/run (-> XOR TRUE TRUE)) false)
+    (expect-assertion-error (test-boolean (eval/run (-> XOR TRUE TRUE)) true))
+    ; Nand
+    (test-boolean (eval/run (-> NAND FALSE FALSE)) true)
+    (test-boolean (eval/run (-> NAND TRUE FALSE)) true)
+    (test-boolean (eval/run (-> NAND FALSE TRUE)) true)
+    (test-boolean (eval/run (-> NAND TRUE TRUE)) false)
+    ; Mod2
+    (test-church-number (eval/run (-> MOD2 42)) 0)
+    (test-church-number (eval/run (-> MOD2 69)) 1)
+    ; Recursion
+    (test-church-number (eval/run (-> Y-COMB RECURSION 0 0)) 1)
+    (test-church-number (eval/run (-> Y-COMB RECURSION 0 1)) 2)
+    (test-church-number (eval/run (-> Y-COMB RECURSION 0 2)) 4)
+    (test-church-number (eval/run (-> Y-COMB RECURSION 1 0)) 2)
+    (test-church-number (eval/run (-> Y-COMB RECURSION 1 1)) 4)
+    (test-church-number (eval/run (-> Y-COMB RECURSION 1 2)) 8)
+    (test-church-number (eval/run (-> Y-COMB RECURSION 2 0)) 4)
+    (test-church-number (eval/run (-> Y-COMB RECURSION 2 1)) 8)
+    (test-church-number (eval/run (-> Y-COMB RECURSION 2 2)) 16)
+    ; Math
+    (test-church-number (eval/run (-> MATH 0 0)) 0)
+    (test-church-number (eval/run (-> MATH 0 1)) 2)
+    (test-church-number (eval/run (-> MATH 2 5)) 30)
+    (test-church-number (eval/run (-> MATH 3 2)) 16)
+    ; Test some alpha conversion
+    (check-expression (eval/run "a") "a")
+    (expect-assertion-error (check-expression (eval/run "a") "b"))
+    (check-expression (eval/beta-reduction (conv/clojurize (-> ["x" ["y" ["z" (-> "x" "z")]]] ["a" (-> "y" "z")])))
+                      (["x" [_1 [_2 ("x" _2)]]] ["a" ("y" "z")]))
+    (expect-assertion-error (check-expression (eval/beta-reduction (conv/clojurize (-> ["x" ["y" ["z" (-> "x" "z")]]] ["a" (-> "y" "z")])))
+                                              (["x" [_1 [_2 ("x" _1)]]] ["a" ("y" "z")])))
+    (expect-assertion-error (check-expression (eval/beta-reduction (conv/clojurize (-> ["x" ["y" ["a" (-> "x" "z")]]] ["a" (-> "y" "z")])))
+                                              (["x" [_1 [_2 ("x" _2)]]] ["a" ("y" "z")])))))
+
+(try (run-tests)
+     (println "ok")
+     (catch Throwable t
+       (println "Fail:")
+       (Thread/sleep 10)
+       (.printStackTrace t)))

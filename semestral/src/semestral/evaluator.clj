@@ -1,6 +1,9 @@
 (ns semestral.evaluator
   (:require [semestral.conversion :as conv]))
 
+(def ^:dynamic *step-by-step-eval* true)
+(def ^:dynamic *interval* 250)
+
 (defn find-free-variables
   "Returns a set of free variables in the form."
   [form]
@@ -57,16 +60,15 @@
   "Runs the ultra turbo 69420 core Turing machine."
   [form]
   (let [form (conv/clojurize form)]
-    ; (println form)
+    (if *step-by-step-eval* (println (str "#0: " form)))
     (loop [form form
            i 1]
-      ; (println (str "#" i))
       (let [new-form (beta-reduction form)]
         (if (= form new-form)
           form
-          (do                                               ; (println new-form)
-            ; (Thread/sleep 100)                              ; debug - prevent infinite loop
-            (recur new-form (inc i))))))))
+          (do (if *step-by-step-eval* (println (str "#" i ": " new-form)))
+              (if (> *interval* 0) (Thread/sleep 100))
+              (recur new-form (inc i))))))))
 
 (defn run
   "Some might say the 'only correct name' of this function is too long and hard to type without linters."
