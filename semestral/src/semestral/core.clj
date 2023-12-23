@@ -1,14 +1,20 @@
 (ns semestral.core
-  (:require [semestral.conversion :as conv]
+  (:refer-clojure :exclude [->])
+  (:require [clojure.pprint :as pp]
+            [semestral.conversion :as conv]
             [semestral.evaluator :as eval]
             [semestral.parser :as p]
             [semestral.predefs :refer :all :as predefs]
             [semestral.types]))
 
-(def expr-two (p/call INC INC ZERO))
-(def expr-two-plus-five (p/call ADD 2 5))
-(def expr-three-times-four (p/call MUL 3 4))
-(p/call Y-COMB FACT 4)
-
 (defn evaluate [expr]
-  (eval/run-the-turing-fkin-machine (conv/clojurize expr)))
+  (eval/run-the-turing-fkin-machine expr))
+
+(defmacro with-interval [interval & body]
+  `(binding [eval/*interval* ~interval]
+     ~@body))
+
+(defmacro no-step-by-step [& body]
+  `(binding [eval/*step-by-step-eval* false
+             eval/*interval* 0]
+     ~@body))

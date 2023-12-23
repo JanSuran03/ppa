@@ -13,24 +13,24 @@
 (def TRUE (l "t f" "t"))
 (def FALSE (l "t f" "f"))
 (def ZERO (l "s z" "z"))
-(def Y-COMB (l "f" (call (l "x" (call "f" (call "x x")))
-                         (l "x" (call "f" (call "x x"))))))
-(def ADD (l "x y s z" (call "x s" (call "y s z"))))
+(def Y-COMB (l "f" (-> (l "x" (-> "f" (-> "x" "x")))
+                       (l "x" (-> "f" (-> "x" "x"))))))
+(def ADD (l "x y s z" (-> "x" "s" (-> "y" "s" "z"))))
 (def DEC (l "x s z" (-> "x"
-                        (l "f g" (call "g" (call "f s")))
+                        (l "f g" (-> "g" (-> "f" "s")))
                         (l "g" "z")
                         (l "u" "u"))))
 (def SUB (l "m n" (-> "n" DEC "m")))
-(def AND (l "x y" (call "x y x")))
-(def OR (l "x y" (call "x x y")))
+(def AND (l "x y" (-> "x" "y" "x")))
+(def OR (l "x y" (-> "x" "x" "y")))
 (def NOT (l "x" (-> "x" FALSE TRUE)))
-(def MUL (l "x y s" (call "x" (call "y s"))))
-(def NAND (l "x y" (call (call "x y x")
-                         FALSE
-                         TRUE)))
-(def INC (l "n s z" (call "s" (call "n s z"))))
+(def MUL (l "x y s" (-> "x" (-> "y" "s"))))
+(def NAND (l "x y" (-> (-> "x" "y" "x")
+                       FALSE
+                       TRUE)))
+(def INC (l "n s z" (-> "s" (-> "n" "s" "z"))))
 (def ZERO? (l "n" (-> "n" (l "x" FALSE) TRUE)))
-(def FACT (l "f n" (-> ZERO? "n" 1 (-> MUL "n" (call "f" (call DEC "n"))))))
+(def FACT (l "f n" (-> ZERO? "n" 1 (-> MUL "n" (-> "f" (-> DEC "n"))))))
 (def XOR (l "x y" (-> "x" (-> NOT "y") "y")))
 (def MOD2 (l "n" (-> "n" (l "x t f" (-> "x" "f" "t"))
                      TRUE
@@ -52,6 +52,10 @@
                   (map (fn [[sym var]]
                          [(str sym) (deref var)]))
                   (into {})))
+
+(defn list-predefs []
+  (doseq [[var val] predefs]
+    (println var val)))
 
 ; ---------------------- TESTS ----------------------
 (defmacro testing [& body]
@@ -157,7 +161,7 @@
                                               (["x" [_1 [_2 ("x" _2)]]] ["a" ("y" "z")])))))
 
 (try (run-tests)
-     (println "ok")
+     (println "All tests passed.")
      (catch Throwable t
        (println "Fail:")
        (Thread/sleep 10)

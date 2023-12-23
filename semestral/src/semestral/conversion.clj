@@ -69,6 +69,10 @@
 (defprotocol StringConvertible
   (as-str [this]))
 
+(def lambda-sym (atom "λ"))
+
+(defn fix-lambda [] (reset! lambda-sym "L"))
+
 (extend-protocol StringConvertible
   String
   (as-str [this] this)
@@ -78,7 +82,7 @@
   (as-str [this] (name this))
   Lambda
   (as-str [{:keys [arg body]}]
-    (str "(λ " (as-str arg) " . " (as-str body) ")"))
+    (str "(" @lambda-sym " " (as-str arg) " . " (as-str body) ")"))
   Application
   (as-str [{:keys [f arg]}]
     (str "(" (as-str f) " " (as-str arg) ")")))

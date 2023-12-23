@@ -8,12 +8,6 @@
 
 (declare church-number)
 
-(defn- parse-1 [x]
-  (cond (nil? x) nil
-        (number? x) [(church-number x)]
-        (string? x) (parse-symbols x)
-        :else [x]))
-
 (defn lambda [args body]
   ((fn expand [[arg & more]]
      (if more
@@ -23,14 +17,13 @@
 
 (def l lambda)
 
-(defn application [& args]
-  ((fn expand [[x y & more]]
-     (let [[x y & more2] (concat (parse-1 x) (parse-1 y))
-           more (concat more2 more)]
-       (cond (seq more) (Application. (Application. x y) (expand more)) ; ((f x) y
-             y (Application. x y)                           ; (f x)
-             :else x)))                                     ; x
-   args))
+(defn maybe-church-number [x]
+  (if (number? x)
+    (church-number x)
+    x))
+
+(defn application [x y]
+  (Application. (maybe-church-number x) (maybe-church-number y)))
 
 (def call application)
 
