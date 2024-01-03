@@ -153,11 +153,11 @@
     ; Test some alpha conversion
     (check-expression (eval/run "a") "a")
     (expect-assertion-error (check-expression (eval/run "a") "b"))
-    (check-expression (eval/beta-reduction (conv/clojurize (-> ["x" ["y" ["z" (-> "x" "z")]]] ["a" (-> "y" "z")])))
+    (check-expression (eval/eval-step (conv/clojurize (-> ["x" ["y" ["z" (-> "x" "z")]]] ["a" (-> "y" "z")])))
                       (["x" [_1 [_2 ("x" _2)]]] ["a" ("y" "z")]))
-    (expect-assertion-error (check-expression (eval/beta-reduction (conv/clojurize (-> ["x" ["y" ["z" (-> "x" "z")]]] ["a" (-> "y" "z")])))
+    (expect-assertion-error (check-expression (eval/eval-step (conv/clojurize (-> ["x" ["y" ["z" (-> "x" "z")]]] ["a" (-> "y" "z")])))
                                               (["x" [_1 [_2 ("x" _1)]]] ["a" ("y" "z")])))
-    (expect-assertion-error (check-expression (eval/beta-reduction (conv/clojurize (-> ["x" ["y" ["a" (-> "x" "z")]]] ["a" (-> "y" "z")])))
+    (expect-assertion-error (check-expression (eval/eval-step (conv/clojurize (-> ["x" ["y" ["a" (-> "x" "z")]]] ["a" (-> "y" "z")])))
                                               (["x" [_1 [_2 ("x" _2)]]] ["a" ("y" "z")])))))
 
 (try (run-tests)

@@ -1,7 +1,6 @@
 (ns semestral.core
   (:refer-clojure :exclude [->])
-  (:require [clojure.pprint :as pp]
-            [semestral.conversion :as conv]
+  (:require [semestral.conversion :as conv]
             [semestral.evaluator :as eval]
             [semestral.parser :as p]
             [semestral.predefs :refer :all :as predefs]

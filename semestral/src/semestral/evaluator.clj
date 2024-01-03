@@ -40,27 +40,32 @@
     (rename-bound-variables form free-variables)))
 
 (defn beta-reduction
-  "Performs a beta reduction on the form. If an alpha conversion needs to be performed, instead performs
-  the alpha conversion and returns, potentially performing beta reduction in the next call."
+  "Performs beta reduction on the form."
+  [arg-name replacement form-to-reduce]
+  ((fn beta-reduction-1 [form]
+     (cond (string? form) (if (= form arg-name) replacement form) ; replace symbol if match
+           (vector? form) (if (= (first form) arg-name) form [(first form) (beta-reduction-1 (second form))]) ; abort if argument is shadowed
+           (list? form) (list (beta-reduction-1 (first form)) (beta-reduction-1 (second form))))) ; reduce both branches of calls
+   form-to-reduce))
+
+(defn eval-step
+  "Performs an evaluation step on the form. If alpha conversion needs to be performed, it does so and returns,
+  potentially performing beta reduction in the next call, otherwise it will try to perform beta reduction."
   [form]
-  ((fn beta-reduction1 [[x y :as form] bound-vars]
+  ((fn eval-step-1 [[x y :as form] bound-vars]
      (cond (string? form) form                              ; symbol - do nothing
-           (vector? form) [x (beta-reduction1 y (conj bound-vars x))]            ; lambda - try to reduce body
-           (list? form) (cond (string? x) (list x (beta-reduction1 y bound-vars)) ; call: target symbol - try to reduce argument
-                              (list? x) (let [redx (beta-reduction1 x bound-vars)] ; nested call - try to reduce, then try to reduce argument if no reduction is performed
+           (vector? form) [x (eval-step-1 y (conj bound-vars x))] ; lambda - try to reduce body
+           (list? form) (cond (string? x) (list x (eval-step-1 y bound-vars)) ; call: target symbol - try to reduce argument
+                              (list? x) (let [redx (eval-step-1 x bound-vars)] ; nested call - try to reduce, then try to reduce argument if no reduction is performed
                                           (if (= x redx)
-                                            (list x (beta-reduction1 y bound-vars))
+                                            (list x (eval-step-1 y bound-vars))
                                             (list redx y)))
                               (vector? x) (let [alpha-converted-x (alpha-conversion x y bound-vars)] ; pure lambda call - first, capture the lambda argument, then reduce body
                                             (let [[arg body] alpha-converted-x]
                                               (if (= x alpha-converted-x)
-                                                ((fn reduce-1 [form]
-                                                   (cond (string? form) (if (= form arg) y form) ; replace symbol if match
-                                                         (vector? form) (if (= (first form) arg) form [(first form) (reduce-1 (second form))]) ; abort if argument is shadowed
-                                                         (list? form) (list (reduce-1 (first form)) (reduce-1 (second form))))) ; reduce both branches of calls
-                                                 body)
+                                                (beta-reduction arg y body)
                                                 (list alpha-converted-x y)))))))
-   form #{})) ; do one step at a time - only alpha conversion.
+   form #{}))
 
 (defn run-the-turing-fkin-machine
   "Runs the ultra turbo 69420 core Turing machine."
@@ -69,7 +74,7 @@
     (if *step-by-step-eval* (println (str "#0: " form)))
     (loop [form form
            i 1]
-      (let [new-form (beta-reduction form)]
+      (let [new-form (eval-step form)]
         (if (= form new-form)
           form
           (do (if *step-by-step-eval* (println (str "#" i ": " new-form)))
