@@ -5,7 +5,7 @@ You will need Java, Clojure and Leiningen installed. (`java`, `clj`/`clojure`, `
 To run the REPL, there are several options. One of them is to use Leiningen (make sure you run the command
 while in this directory with `project.clj`, which is the Leiningen project configuration):
 
-![lein-repl.png](lein-repl.png)
+![usage](img.png)
 
 The syntax is simple: You define lambdas as vectors `[arg body]` and applications with `(-> f arg)`, while
 you can also call `(-> f x y z)` which expands to `(((f x) y) z)`:

@@ -1,8 +1,6 @@
 (ns semestral.evaluator
-  (:require [semestral.conversion :as conv]))
-
-(def ^:dynamic *step-by-step-eval* true)
-(def ^:dynamic *interval* 200)
+  (:require [semestral.conversion :as conv])
+  (:import (java.util Iterator)))
 
 (defn find-free-variables
   "Returns a set of free variables in the form."
@@ -67,21 +65,34 @@
                                                 (list alpha-converted-x y)))))))
    form #{}))
 
-(defn run-the-turing-fkin-machine
-  "Runs the ultra turbo 69420 core Turing machine."
-  [form]
-  (let [form (conv/clojurize form)]
-    (if *step-by-step-eval* (println (str "#0: " form)))
-    (loop [form form
-           i 1]
-      (let [new-form (eval-step form)]
-        (if (= form new-form)
-          form
-          (do (if *step-by-step-eval* (println (str "#" i ": " new-form)))
-              (if (> *interval* 0) (Thread/sleep ^Long *interval*))
-              (recur new-form (inc i))))))))
-
 (defn run
-  "Some might say the 'only correct name' of this function is too long and hard to type without linters."
+  "Runs the lambda calculus evaluator, returns iterator over intermediate values."
   [form]
-  (run-the-turing-fkin-machine form))
+  (let [form (conv/clojurize form)
+        prev (volatile! form)
+        has-next? (volatile! true)]
+    (reify Iterator
+      (hasNext [_this]
+        @has-next?)
+      (next [_this]
+        (let [result @prev
+              next-result (eval-step result)]
+          (when (= next-result result)
+            (vreset! has-next? false))
+          (vreset! prev next-result)
+          result)))))
+
+(defn it-last
+  "Retrieves the last value from an iterator."
+  [^Iterator it]
+  (last (iterator-seq it)))
+
+(defn run-result
+  "Runs the lambda calculus evaluator, only returns the final result."
+  [form]
+  (it-last (run form)))
+
+(defn run-steps
+  "Returns steps of the evaluation process as a lazy sequence."
+  [form]
+  (iterator-seq (run form)))

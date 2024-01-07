@@ -58,10 +58,6 @@
     (println var val)))
 
 ; ---------------------- TESTS ----------------------
-(defmacro testing [& body]
-  `(binding [eval/*step-by-step-eval* false
-             eval/*interval* 0]
-     ~@body))
 
 (defmacro expect-assertion-error [form]
   `(try ~form
@@ -81,7 +77,7 @@
         (cond (= body z) (assert (= n expected-number) (str "Church number does not have the expected value"
                                                             " (expected = " expected-number ", actual = " n ")."))
               (list? body) (let [[s2 sz-next] body]
-                             (assert (= s s2) ("Church number body mismatch."))
+                             (assert (= s s2) "Church number body mismatch.")
                              (recur (inc n) sz-next))
               :else (assert false "Church number body malformed, expected 'z' or an application."))))))
 
@@ -116,49 +112,48 @@
   `(assert (check-expr ~form (quote ~template) {})))
 
 (defn run-tests []
-  (testing
-    (test-church-number (church-number 3) 3)
-    (expect-assertion-error (test-church-number (church-number 3) 4))
-    (test-church-number (eval/run (-> Y-COMB FACT 4)) 24)
-    (test-church-number (eval/run (-> ADD 3 5)) 8)
-    ; Xor
-    (test-boolean (eval/run (-> XOR FALSE FALSE)) false)
-    (test-boolean (eval/run (-> XOR TRUE FALSE)) true)
-    (test-boolean (eval/run (-> XOR FALSE TRUE)) true)
-    (test-boolean (eval/run (-> XOR TRUE TRUE)) false)
-    (expect-assertion-error (test-boolean (eval/run (-> XOR TRUE TRUE)) true))
-    ; Nand
-    (test-boolean (eval/run (-> NAND FALSE FALSE)) true)
-    (test-boolean (eval/run (-> NAND TRUE FALSE)) true)
-    (test-boolean (eval/run (-> NAND FALSE TRUE)) true)
-    (test-boolean (eval/run (-> NAND TRUE TRUE)) false)
-    ; Mod2
-    (test-church-number (eval/run (-> MOD2 42)) 0)
-    (test-church-number (eval/run (-> MOD2 69)) 1)
-    ; Recursion
-    (test-church-number (eval/run (-> Y-COMB RECURSION 0 0)) 1)
-    (test-church-number (eval/run (-> Y-COMB RECURSION 0 1)) 2)
-    (test-church-number (eval/run (-> Y-COMB RECURSION 0 2)) 4)
-    (test-church-number (eval/run (-> Y-COMB RECURSION 1 0)) 2)
-    (test-church-number (eval/run (-> Y-COMB RECURSION 1 1)) 4)
-    (test-church-number (eval/run (-> Y-COMB RECURSION 1 2)) 8)
-    (test-church-number (eval/run (-> Y-COMB RECURSION 2 0)) 4)
-    (test-church-number (eval/run (-> Y-COMB RECURSION 2 1)) 8)
-    (test-church-number (eval/run (-> Y-COMB RECURSION 2 2)) 16)
-    ; Math
-    (test-church-number (eval/run (-> MATH 0 0)) 0)
-    (test-church-number (eval/run (-> MATH 0 1)) 2)
-    (test-church-number (eval/run (-> MATH 2 5)) 30)
-    (test-church-number (eval/run (-> MATH 3 2)) 16)
-    ; Test some alpha conversion
-    (check-expression (eval/run "a") "a")
-    (expect-assertion-error (check-expression (eval/run "a") "b"))
-    (check-expression (eval/eval-step (conv/clojurize (-> ["x" ["y" ["z" (-> "x" "z")]]] ["a" (-> "y" "z")])))
-                      (["x" [_1 [_2 ("x" _2)]]] ["a" ("y" "z")]))
-    (expect-assertion-error (check-expression (eval/eval-step (conv/clojurize (-> ["x" ["y" ["z" (-> "x" "z")]]] ["a" (-> "y" "z")])))
-                                              (["x" [_1 [_2 ("x" _1)]]] ["a" ("y" "z")])))
-    (expect-assertion-error (check-expression (eval/eval-step (conv/clojurize (-> ["x" ["y" ["a" (-> "x" "z")]]] ["a" (-> "y" "z")])))
-                                              (["x" [_1 [_2 ("x" _2)]]] ["a" ("y" "z")])))))
+  (test-church-number (church-number 3) 3)
+  (expect-assertion-error (test-church-number (church-number 3) 4))
+  (test-church-number (eval/run-result (-> Y-COMB FACT 4)) 24)
+  (test-church-number (eval/run-result (-> ADD 3 5)) 8)
+  ; Xor
+  (test-boolean (eval/run-result (-> XOR FALSE FALSE)) false)
+  (test-boolean (eval/run-result (-> XOR TRUE FALSE)) true)
+  (test-boolean (eval/run-result (-> XOR FALSE TRUE)) true)
+  (test-boolean (eval/run-result (-> XOR TRUE TRUE)) false)
+  (expect-assertion-error (test-boolean (eval/run-result (-> XOR TRUE TRUE)) true))
+  ; Nand
+  (test-boolean (eval/run-result (-> NAND FALSE FALSE)) true)
+  (test-boolean (eval/run-result (-> NAND TRUE FALSE)) true)
+  (test-boolean (eval/run-result (-> NAND FALSE TRUE)) true)
+  (test-boolean (eval/run-result (-> NAND TRUE TRUE)) false)
+  ; Mod2
+  (test-church-number (eval/run-result (-> MOD2 42)) 0)
+  (test-church-number (eval/run-result (-> MOD2 69)) 1)
+  ; Recursion
+  (test-church-number (eval/run-result (-> Y-COMB RECURSION 0 0)) 1)
+  (test-church-number (eval/run-result (-> Y-COMB RECURSION 0 1)) 2)
+  (test-church-number (eval/run-result (-> Y-COMB RECURSION 0 2)) 4)
+  (test-church-number (eval/run-result (-> Y-COMB RECURSION 1 0)) 2)
+  (test-church-number (eval/run-result (-> Y-COMB RECURSION 1 1)) 4)
+  (test-church-number (eval/run-result (-> Y-COMB RECURSION 1 2)) 8)
+  (test-church-number (eval/run-result (-> Y-COMB RECURSION 2 0)) 4)
+  (test-church-number (eval/run-result (-> Y-COMB RECURSION 2 1)) 8)
+  (test-church-number (eval/run-result (-> Y-COMB RECURSION 2 2)) 16)
+  ; Math
+  (test-church-number (eval/run-result (-> MATH 0 0)) 0)
+  (test-church-number (eval/run-result (-> MATH 0 1)) 2)
+  (test-church-number (eval/run-result (-> MATH 2 5)) 30)
+  (test-church-number (eval/run-result (-> MATH 3 2)) 16)
+  ; Test some alpha conversion
+  (check-expression (eval/run-result "a") "a")
+  (expect-assertion-error (check-expression (eval/run-result "a") "b"))
+  (check-expression (eval/eval-step (conv/clojurize (-> ["x" ["y" ["z" (-> "x" "z")]]] ["a" (-> "y" "z")])))
+                    (["x" [_1 [_2 ("x" _2)]]] ["a" ("y" "z")]))
+  (expect-assertion-error (check-expression (eval/eval-step (conv/clojurize (-> ["x" ["y" ["z" (-> "x" "z")]]] ["a" (-> "y" "z")])))
+                                            (["x" [_1 [_2 ("x" _1)]]] ["a" ("y" "z")])))
+  (expect-assertion-error (check-expression (eval/eval-step (conv/clojurize (-> ["x" ["y" ["a" (-> "x" "z")]]] ["a" (-> "y" "z")])))
+                                            (["x" [_1 [_2 ("x" _2)]]] ["a" ("y" "z")]))))
 
 (try (run-tests)
      (println "All tests passed.")
